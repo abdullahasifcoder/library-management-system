@@ -1,0 +1,48 @@
+services:
+  db:
+    build: ./database
+    image: wdymabdu/database:FA23-BCS-017
+    environment:
+      POSTGRES_USER: libuser
+      POSTGRES_PASSWORD: libpass
+      POSTGRES_DB: librarydb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - library-network
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    image: wdymabdu/backend:FA23-BCS-017
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_URL: postgres://libuser:libpass@db:5432/librarydb
+    depends_on:
+      - db
+    networks:
+      - library-network
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    image: wdymabdu/frontend:FA23-BCS-017
+    ports:
+      - "3000:3000"
+    environment:
+      - BACKEND_URL=http://backend:5000
+    depends_on:
+      - backend
+    networks:
+      - library-network
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+
+networks:
+  library-network:
+    driver: bridge

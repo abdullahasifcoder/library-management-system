@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans antialiased transition-colors duration-200">
+    <!-- Navbar -->
+    <nav class="bg-white dark:bg-gray-800 shadow dark:shadow-gray-900 transition-colors">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <svg class="w-8 h-8 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                    <a href="#"><span class="font-bold text-xl text-gray-900 dark:text-white">Library Admin</span></a>
+                </div>
+                <div class="flex items-center">
+                    <span class="mr-4 text-sm font-medium text-gray-500 dark:text-gray-400">Administrator</span>
+                    <!-- Dark Mode Toggler -->
+                    <button onclick="toggleDarkMode()" class="mr-4 p-2 rounded-full bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-sm hover:shadow transition">
+                        <svg class="w-4 h-4 hidden dark:block text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                        <svg class="w-4 h-4 block dark:hidden text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    </button>
+                    <button onclick="logout()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition shadow-sm">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Analytics Dashboard -->
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 flex flex-col justify-center items-center transition-colors">
+                <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Books</span>
+                <span id="stat-total" class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">-</span>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 flex flex-col justify-center items-center transition-colors">
+                <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Available</span>
+                <span id="stat-available" class="mt-2 text-3xl font-bold text-green-600 dark:text-green-400">-</span>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 flex flex-col justify-center items-center transition-colors">
+                <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Borrowed</span>
+                <span id="stat-borrowed" class="mt-2 text-3xl font-bold text-red-600 dark:text-red-400">-</span>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 flex flex-col justify-center items-center transition-colors">
+                <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Active Users</span>
+                <span id="stat-users" class="mt-2 text-3xl font-bold text-indigo-600 dark:text-indigo-400">-</span>
+            </div>
+        </div>
+
+        <!-- Modals -->
+        <!-- Add Book Modal -->
+        <div id="addModal" class="hidden fixed inset-0 bg-gray-900/75 z-50 overflow-y-auto h-full w-full flex items-center justify-center transition-opacity backdrop-blur-sm">
+            <div class="bg-white dark:bg-gray-800 p-6 border dark:border-gray-700 shadow-xl rounded-xl w-full max-w-lg m-4 transform transition-all relative">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Add New Book</h3>
+                    <button onclick="closeAddModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <form id="addBookForm" class="space-y-5">
+                    <div>
+                        <label class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">Book Title</label>
+                        <input type="text" id="add-title" class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition shadow-sm" required>
+                    </div>
+                    <div>
+                        <label class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">Author</label>
+                        <input type="text" id="add-author" class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition shadow-sm" required>
+                    </div>
+                    <div>
+                        <label class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">Categories</label>
+                        <div id="add-categories" class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 border border-gray-200 dark:border-gray-600 rounded-lg"></div>
+                    </div>
+                    <div class="flex justify-end gap-3 mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <button type="button" onclick="closeAddModal()" class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg shadow-sm transition font-medium focus:ring-2 focus:ring-gray-200">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm font-medium transition focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 dark:focus:ring-offset-gray-800">Add Book</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Delete Modal -->
+        <div id="deleteModal" class="hidden fixed inset-0 bg-gray-900/80 z-50 overflow-y-auto h-full w-full flex items-center justify-center transition-opacity backdrop-blur-sm">
+            <div class="bg-white dark:bg-gray-800 p-6 border dark:border-gray-700 shadow-xl rounded-xl w-full max-w-sm m-4 transform transition-all relative text-center">
+                <input type="hidden" id="deleteBookId">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/50 mb-4">
+                    <svg class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Delete Book</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Are you sure you want to delete this book? This action cannot be undone.</p>
+                <div class="flex justify-center gap-3">
+                    <button onclick="closeDeleteModal()" class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg shadow-sm transition font-medium">Cancel</button>
+                    <button onclick="confirmDeleteBook()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-sm font-medium transition">Delete</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Book Modal -->
+        <div id="editModal" class="hidden fixed inset-0 bg-gray-900/75 z-50 overflow-y-auto h-full w-full flex items-center justify-center transition-opacity backdrop-blur-sm">
+            <div class="bg-white dark:bg-gray-800 p-6 border dark:border-gray-700 shadow-xl rounded-xl w-full max-w-lg m-4 transform transition-all">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Edit Book</h3>
+                    <button onclick="cancelEdit()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <form id="editBookForm" class="space-y-5">
+                    <input type="hidden" id="editBookId">
+                    <div>
+                        <label class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">Book Title</label>
+                        <input type="text" id="edit-title" class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition shadow-sm" required>
+                    </div>
+                    <div>
+                        <label class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">Author</label>
+                        <input type="text" id="edit-author" class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition shadow-sm" required>
+                    </div>
+                    <div>
+                        <label class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">Categories</label>
+                        <div id="edit-categories" class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 border border-gray-200 dark:border-gray-600 rounded-lg"></div>
+                    </div>
+                    <div class="flex justify-end gap-3 mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <button type="button" onclick="cancelEdit()" class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg shadow-sm transition font-medium focus:ring-2 focus:ring-gray-200">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm font-medium transition focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 dark:focus:ring-offset-gray-800">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Inventory Table -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors mb-8">
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700 sm:flex sm:items-center sm:justify-between">
+                <div class="flex items-center space-x-4 mb-4 sm:mb-0">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Inventory Management</h2>
+                    <button onclick="openAddModal()" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-sm transition">
+                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                        <span>Add Book</span>
+                    </button>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <div class="relative rounded-md shadow-sm">
+                        <select id="categoryFilter" onchange="currentPage=1; loadBooks()" class="focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white rounded-md py-2 px-3 border transition outline-none">
+                            <option value="">All Categories</option>
+                        </select>
+                    </div>
+                    <div class="relative rounded-md shadow-sm sm:w-64">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                        <input type="text" id="search" onkeyup="currentPage=1; loadBooks()" placeholder="Search titles or authors..." class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white rounded-md py-2 border transition outline-none">
+                    </div>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-50 dark:bg-gray-800/50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Book Title</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Author</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Categories</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="booksList" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        <!-- Books will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="paginationControls" class="px-6 py-4 flex justify-between items-center border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                <button onclick="changePage(currentPage - 1)" class="px-4 py-2 border rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600 shadow-sm transition disabled:opacity-50">Previous</button>
+                <span id="pageInfo" class="text-sm text-gray-700 dark:text-gray-300">Page 1 of 1</span>
+                <button onclick="changePage(currentPage + 1)" class="px-4 py-2 border rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600 shadow-sm transition disabled:opacity-50">Next</button>
+            </div>
+            <div id="emptyState" class="hidden p-8 text-center text-gray-500 dark:text-gray-400">
+                No books in inventory.
+            </div>
+        </div>
+
+        <!-- Audit History Table -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors">
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700 sm:flex sm:items-center sm:justify-between">
+                <div class="flex items-center space-x-4 mb-4 sm:mb-0">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Audit Logs: Borrow History</h2>
+                </div>
+            </div>
+            <div class="overflow-x-auto max-h-96">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-50 dark:bg-gray-800/50 sticky top-0">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Book Title</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Borrowed At</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Returned At</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyList" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        <!-- History will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="emptyHistoryState" class="hidden p-8 text-center text-gray-500 dark:text-gray-400">
+                No borrow history found.
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        if(!user || user.role !== 'Admin') window.location.href = '/';
+        
+        let allCategories = [];
+        let currentPage = 1;
+        let currentLimit = 10;
+
+        function changePage(page) {
+            if (page < 1) return;
+            currentPage = page;
+            loadBooks();
+        }
+
+        async function loadCategories() {
+            try {
+                const res = await fetch('/api/categories');
+                allCategories = await res.json();
+                const select = document.getElementById('categoryFilter');
+                if(select) {
+                    allCategories.forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = c.name;
+                        opt.textContent = c.name;
+                        select.appendChild(opt);
+                    });
+                }
+            } catch (e) { console.error('Error fetching categories:', e); }
+        }
+
+        function populateCategoryCheckboxes(containerId, selectedCatIds = []) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = allCategories.map(cat => {
+                const checked = selectedCatIds.includes(cat.id) ? 'checked' : '';
+                return `
+                    <label class="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300">
+                        <input type="checkbox" value="${cat.id}" class="${containerId}-checkbox text-indigo-600 focus:ring-indigo-500 rounded dark:bg-gray-700 dark:border-gray-600" ${checked}>
+                        <span>${cat.name}</span>
+                    </label>
+                `;
+            }).join('');
+        }
+
+        function getSelectedCategories(containerId) {
+            const checkboxes = document.querySelectorAll(`.${containerId}-checkbox:checked`);
+            return Array.from(checkboxes).map(cb => parseInt(cb.value));
+        }
+
+        async function loadAnalytics() {
+            try {
+                const res = await fetch('/api/analytics');
+                const data = await res.json();
+                document.getElementById('stat-total').textContent = data.totalBooks;
+                document.getElementById('stat-available').textContent = data.availableBooks;
+                document.getElementById('stat-borrowed').textContent = data.borrowedBooks;
+                document.getElementById('stat-users').textContent = data.totalUsers;
+            } catch (e) {
+                console.error('Error fetching analytics:', e);
+            }
+        }
+
+        async function loadBooks() {
+            const search = document.getElementById('search') ? document.getElementById('search').value : '';
+            const filterCat = document.getElementById('categoryFilter') ? document.getElementById('categoryFilter').value : '';
+
+            let queryParams = `?page=${currentPage}&limit=${currentLimit}`;
+            if (search) queryParams += `&search=${encodeURIComponent(search)}`;
+            if (filterCat) queryParams += `&category=${encodeURIComponent(filterCat)}`;
+
+            const res = await fetch(`/api/books${queryParams}`);
+            const data = await res.json();
+            const books = data.books || [];
+
+            const list = document.getElementById('booksList');
+            const emptyState = document.getElementById('emptyState');
+            
+            list.innerHTML = '';
+            
+            // Pagination controls update
+            document.getElementById('pageInfo').textContent = `Page ${data.currentPage} of ${data.totalPages || 1}`;
+            const controlsButtons = document.querySelectorAll('#paginationControls button');
+            controlsButtons[0].disabled = data.currentPage <= 1;
+            controlsButtons[1].disabled = data.currentPage >= (data.totalPages || 1);
+
+            if (books.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                books.forEach(b => {
+                    const isAvailable = b.status === 'Available';
+                    const statusBadge = isAvailable 
+                        ? `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Available</span>`
+                        : `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Borrowed by ${b.borrower_name || 'Unknown'}</span>`;
+
+                    const catNames = (b.categories && b.categories.length > 0) ? b.categories.join(', ') : 'None';
+
+                    // Parse cat names to map to category IDs for selection.
+                    // Instead, we can pass b.categories (array of strings) if we match by name, but we need IDs.
+                    const catIds = allCategories.filter(c => (b.categories||[]).includes(c.name)).map(c => c.id);
+
+                    list.innerHTML += `
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">${b.title}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${b.author}</td>
+                            <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 max-w-[200px] truncate" title="${catNames}">${catNames}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">${statusBadge}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex justify-end gap-2">
+                                <button onclick="editBook(${b.id}, '${b.title.replace(/'/g, "\\'")}', '${b.author.replace(/'/g, "\\'")}', [${catIds.join(', ')}])" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-indigo-700 bg-indigo-100 hover:bg-indigo-200 dark:text-indigo-200 dark:bg-indigo-900 focus:outline-none transition">
+                                    Edit
+                                </button>
+                                <button onclick="deleteBook(${b.id})" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-red-700 bg-red-100 hover:bg-red-200 dark:text-red-200 dark:bg-red-900 focus:outline-none transition">
+                                    Remove
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        function openAddModal() {
+            document.getElementById('add-title').value = '';
+            document.getElementById('add-author').value = '';
+            populateCategoryCheckboxes('add-categories', []);
+            document.getElementById('addModal').classList.remove('hidden');
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').classList.add('hidden');
+        }
+
+        function editBook(id, title, author, catIds = []) {
+            document.getElementById('editBookId').value = id;
+            document.getElementById('edit-title').value = title;
+            document.getElementById('edit-author').value = author;
+            populateCategoryCheckboxes('edit-categories', catIds);
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function cancelEdit() {
+            document.getElementById('editBookId').value = '';
+            document.getElementById('edit-title').value = '';
+            document.getElementById('edit-author').value = '';
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        document.getElementById('addBookForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                title: document.getElementById('add-title').value,
+                author: document.getElementById('add-author').value,
+                categories: getSelectedCategories('add-categories')
+            };
+
+            await fetch('/api/books', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            closeAddModal();
+            loadBooks();
+            loadAnalytics();
+        });
+
+        document.getElementById('editBookForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const editBookId = document.getElementById('editBookId').value;
+            const payload = {
+                title: document.getElementById('edit-title').value,
+                author: document.getElementById('edit-author').value,
+                categories: getSelectedCategories('edit-categories')
+            };
+
+            await fetch(`/api/books/${editBookId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            cancelEdit();
+            
+            loadBooks();
+            loadAnalytics();
+        });
+
+        function deleteBook(id) {
+            document.getElementById('deleteBookId').value = id;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteBookId').value = '';
+            document.getElementById('deleteModal').classList.add('hidden');
+        }
+
+        async function confirmDeleteBook() {
+            const id = document.getElementById('deleteBookId').value;
+            if(id) {
+                await fetch(`/api/books/${id}`, { method: 'DELETE' });
+                closeDeleteModal();
+                loadBooks();
+                loadAnalytics();
+            }
+        }
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        }
+
+        function logout() { localStorage.clear(); window.location.href = '/'; }
+
+        async function loadHistory() {
+            try {
+                const res = await fetch('/api/history');
+                const history = await res.json();
+                const list = document.getElementById('historyList');
+                const emptyState = document.getElementById('emptyHistoryState');
+                
+                list.innerHTML = '';
+                if (history.length === 0) {
+                    emptyState.classList.remove('hidden');
+                } else {
+                    emptyState.classList.add('hidden');
+                    history.forEach(h => {
+                        const bAt = new Date(h.borrowed_at).toLocaleString();
+                        const rAt = h.returned_at ? new Date(h.returned_at).toLocaleString() : '<span class="text-yellow-600 font-medium">Currently Borrowed</span>';
+                        list.innerHTML += `
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">${h.book_title}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${h.user_name}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${bAt}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${rAt}</td>
+                            </tr>
+                        `;
+                    });
+                }
+            } catch (e) {
+                console.error('Error fetching history:', e);
+            }
+        }
+
+        async function initialize() {
+            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+            await loadCategories();
+            loadBooks();
+            loadAnalytics();
+            loadHistory();
+        }
+        
+        initialize();
+    </script>
+</body>
+</html>

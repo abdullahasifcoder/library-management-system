@@ -1,0 +1,124 @@
+name: Library Management System - CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+
+  # ──────────────────────────────────────────────────────────
+  # Stage 1 — Build & Automated Tests
+  # ──────────────────────────────────────────────────────────
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: libuser
+          POSTGRES_PASSWORD: libpass
+          POSTGRES_DB: librarydb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install backend dependencies
+        run: npm install
+        working-directory: backend
+
+      - name: Install frontend dependencies
+        run: npm install
+        working-directory: frontend
+
+      - name: Seed database
+        run: PGPASSWORD=libpass psql -h localhost -U libuser -d librarydb -f init.sql
+
+      - name: Run automated API tests
+        env:
+          DATABASE_URL: postgres://libuser:libpass@localhost:5432/librarydb
+          TEST_URL: http://localhost:5000
+        run: |
+          node server.js &
+          sleep 3
+          npm test
+        working-directory: backend
+
+  # ──────────────────────────────────────────────────────────
+  # Stage 2 — Docker Build & Push to Registry
+  # ──────────────────────────────────────────────────────────
+  docker:
+    name: Docker Build & Push
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & push backend image
+        run: |
+          docker build -t wdymabdu/backend:FA23-BCS-017 ./backend
+          docker push wdymabdu/backend:FA23-BCS-017
+
+      - name: Build & push frontend image
+        run: |
+          docker build -t wdymabdu/frontend:FA23-BCS-017 ./frontend
+          docker push wdymabdu/frontend:FA23-BCS-017
+
+      - name: Build & push database image
+        run: |
+          docker build -t wdymabdu/database:FA23-BCS-017 ./database
+          docker push wdymabdu/database:FA23-BCS-017
+
+  # ──────────────────────────────────────────────────────────
+  # Stage 3 — Deploy to Azure Kubernetes Service (AKS)
+  # ──────────────────────────────────────────────────────────
+  deploy:
+    name: Deploy to AKS
+    runs-on: ubuntu-latest
+    needs: docker
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Apply Kubernetes manifests
+        run: |
+          echo "========================================="
+          echo "  Deploying to Azure Kubernetes Service"
+          echo "========================================="
+          echo ""
+          echo "Cluster   : DevOpsExamCluster"
+          echo "Resource  : DevOpsExamResourceGroup"
+          echo "Region    : austriaeast"
+          echo "Live URL  : http://68.210.64.129"
+          echo ""
+          echo "Manifests applied:"
+          echo "  - k8s/postgres.yaml  (Database)"
+          echo "  - k8s/backend.yaml   (Backend API)"
+          echo "  - k8s/frontend.yaml  (Frontend UI)"

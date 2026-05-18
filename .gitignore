@@ -1,0 +1,10 @@
+node_modules/
+.env
+*.log
+pgdata/
+viva-docs/
+screenshots/
+generate_report.py
+Dockerfile.db
+*.docx
+Final-Term Lab Exam Devops statement.pdf
