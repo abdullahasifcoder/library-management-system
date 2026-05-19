@@ -107,18 +107,14 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
 
+      - name: Setup Kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
+
       - name: Apply Kubernetes manifests
         run: |
-          echo "========================================="
-          echo "  Deploying to Azure Kubernetes Service"
-          echo "========================================="
-          echo ""
-          echo "Cluster   : DevOpsExamCluster"
-          echo "Resource  : DevOpsExamResourceGroup"
-          echo "Region    : austriaeast"
-          echo "Live URL  : http://68.210.64.129"
-          echo ""
-          echo "Manifests applied:"
-          echo "  - k8s/postgres.yaml  (Database)"
-          echo "  - k8s/backend.yaml   (Backend API)"
-          echo "  - k8s/frontend.yaml  (Frontend UI)"
+          kubectl apply -f k8s/postgres.yaml
+          kubectl apply -f k8s/backend.yaml
+          kubectl apply -f k8s/frontend.yaml
