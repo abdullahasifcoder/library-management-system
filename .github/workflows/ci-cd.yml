@@ -118,3 +118,5 @@ jobs:
           kubectl apply -f k8s/postgres.yaml
           kubectl apply -f k8s/backend.yaml
           kubectl apply -f k8s/frontend.yaml
+          kubectl rollout restart deployment backend-deployment
+          kubectl rollout restart deployment frontend-deployment
